@@ -21,9 +21,10 @@ useEffect(() => {
           <img
             src="/assets/images/logo.svg"
             alt="logo"
-            width={170}
+            width={36}
             height={36}
           />
+          <h2 className="h3-bold md:h2-bold">SnoutSpace</h2>
         </Link>
         <Link to={`/profile/${user.id}`} className="flex gap-3 items-center">
           <img

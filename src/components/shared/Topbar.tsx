@@ -18,9 +18,10 @@ useEffect(() => {
           <img
             src="/assets/images/logo.svg"
             alt="logo"
-            width={130}
-            height={325}
+            width={36}
+            height={36}
           />
+          <h2 className="h3-bold md:h2-bold">SnoutSpace</h2>
         </Link>
 
         <div className="flex gap-4">
