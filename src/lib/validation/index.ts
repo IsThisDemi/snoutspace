@@ -21,6 +21,16 @@ export const SigninValidation = z.object({
     .max(50, { message: "Password must be less than 50 characters" }),
 });
 
+export const ProfileValidation = z.object({
+  file: z.custom<File[]>(),
+  name: z.string().min(3, { message: "Name must be at least 3 characters." }),
+  username: z
+    .string()
+    .min(6, { message: "Name must be at least 6 characters." }),
+  email: z.string().email(),
+  bio: z.string(),
+});
+
 export const PostValidation = z.object({
   caption: z
     .string()
@@ -28,8 +38,8 @@ export const PostValidation = z.object({
     .max(2200, { message: "Caption must be less than 2200 character" }),
   file: z.custom<File[]>(),
   location: z
-  .string()
-  .min(5, { message: "Location must be at least 5 character" })
-  .max(100, { message: "Location must be less than 100 character" }),
+    .string()
+    .min(5, { message: "Location must be at least 5 character" })
+    .max(100, { message: "Location must be less than 100 character" }),
   tags: z.string(),
 });
