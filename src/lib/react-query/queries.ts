@@ -99,7 +99,7 @@ export const useCreatePost = () => {
   });
 };
 
-export const useGetPostById = (postId: string) => {
+export const useGetPostById = (postId?: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_POST_BY_ID, postId],
     queryFn: () => getPostById(postId),
@@ -195,7 +195,7 @@ export const useUpdatePost = () => {
 export const useDeletePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({postId, imageId}: {postId: string, imageId: string}) => deletePost(postId, imageId),
+    mutationFn: ({postId, imageId}: {postId?: string, imageId: string}) => deletePost(postId, imageId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
