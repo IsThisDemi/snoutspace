@@ -46,15 +46,15 @@ SnoutSpace is a social networking platform where users can create profiles, shar
 
 ✅ **Like and Save Functionality**: 
 - ✅ Enable users to like and save posts
-- 🔜 Dedicated pages for managing liked and saved content
+- ✅ Dedicated pages for managing liked and saved content
 
 ✅ **Detailed Post Page**: 
 - ✅ A detailed post page displaying content
-- 🔜 Related posts for an immersive user experience
+- ✅ Related posts for an immersive user experience
 
-🔜 **Profile Page**: A user profile page showcasing liked posts and providing options to edit the profile
+✅ **Profile Page**: A user profile page showcasing liked posts and providing options to edit the profile
 
-🔜 **Browse Other Users**: Allow users to browse and explore other users' profiles and posts
+✅ **Browse Other Users**: Allow users to browse and explore other users' profiles and posts
 
 ✅ **Create Post Page**: Implement a user-friendly create post page with effortless file management, storage, and drag-drop feature
 
