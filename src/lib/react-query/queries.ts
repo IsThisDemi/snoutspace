@@ -16,6 +16,7 @@ import {
   getPostById,
   getRecentPosts,
   getUserById,
+  getUserPosts,
   getUsers,
   likePost,
   savePost,
@@ -100,6 +101,15 @@ export const useGetPostById = (postId: string) => {
     enabled: !!postId,
   });
 };
+
+export const useGetUserPosts = (userId?: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_USER_POSTS, userId],
+    queryFn: () => getUserPosts(userId),
+    enabled: !!userId,
+  });
+};
+
 
 export const useLikePost = () => {
   const queryClient = useQueryClient();
