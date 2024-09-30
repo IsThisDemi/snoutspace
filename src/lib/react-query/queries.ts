@@ -25,6 +25,9 @@ import {
   signOutAccount,
   updatePost,
   updateUser,
+  followUser,
+  unfollowUser,
+  isFollowing,
 } from "../appwrite/api";
 
 // ============================================================
@@ -242,5 +245,49 @@ export const useUpdateUser = () => {
         queryKey: [QUERY_KEYS.GET_USER_BY_ID, data?.$id],
       });
     },
+  });
+};
+
+// ============================================================
+// FOLLOW QUERIES
+// ============================================================
+
+export const useFollowUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ followerId, userId }: { followerId: string; userId: string }) =>
+      followUser(followerId, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_USER_BY_ID],
+      });
+    },
+  });
+};
+
+export const useUnfollowUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ followerId, userId }: { followerId: string; userId: string }) =>
+      unfollowUser(followerId, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_USER_BY_ID],
+      });
+    },
+  });
+};
+
+export const useIsFollowing = (followerId: string, userId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.IS_FOLLOWING, followerId, userId],
+    queryFn: () => isFollowing(followerId, userId),
+    enabled: !!followerId && !!userId,
   });
 };

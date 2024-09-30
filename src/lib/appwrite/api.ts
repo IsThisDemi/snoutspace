@@ -544,3 +544,72 @@ export async function updateUser(user: IUpdateUser) {
     console.log(error);
   }
 }
+
+// ============================== FOLLOW USER
+export async function followUser(followerId: string, userId: string) {
+  try {
+    const newFollow = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId, // You need to add this to your appwriteConfig
+      ID.unique(),
+      {
+        follower_id: followerId,
+        followed_at: new Date().toISOString(),
+        user_id: userId,
+      }
+    );
+
+    if (!newFollow) throw Error;
+
+    return newFollow;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+// ============================== UNFOLLOW USER
+export async function unfollowUser(followerId: string, userId: string) {
+  try {
+    const follow = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId,
+      [
+        Query.equal("follower_id", followerId),
+        Query.equal("user_id", userId)
+      ]
+    );
+
+    if (!follow || follow.documents.length === 0) throw Error;
+
+    const deleteFollow = await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId,
+      follow.documents[0].$id
+    );
+
+    if (!deleteFollow) throw Error;
+
+    return { status: "Ok" };
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+// ============================== CHECK IF USER IS FOLLOWING
+export async function isFollowing(followerId: string, userId: string) {
+  try {
+    const follow = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId,
+      [
+        Query.equal("follower_id", followerId),
+        Query.equal("user_id", userId)
+      ]
+    );
+
+    return follow.documents.length > 0;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
