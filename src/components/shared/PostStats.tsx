@@ -86,7 +86,9 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
           width={20}
           height={20}
           onClick={(e) => handleLikePost(e)}
-          className="cursor-pointer"
+          className={`cursor-pointer transition-transform active:scale-90 ${
+            checkIsLiked(likes, userId) ? "drop-shadow-[0_0_6px_#ff6b6b]" : ""
+          }`}
         />
         <p className="small-medium lg:base-medium">{likes.length}</p>
       </div>
@@ -97,7 +99,9 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
           alt="share"
           width={20}
           height={20}
-          className="cursor-pointer"
+          className={`cursor-pointer transition-transform active:scale-90 ${
+            isSaved ? "drop-shadow-[0_0_6px_#a78bfa]" : ""
+          }`}
           onClick={(e) => handleSavePost(e)}
         />
       </div>

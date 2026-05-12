@@ -21,7 +21,7 @@ useEffect(() => {
             width={36}
             height={36}
           />
-          <h2 className="h3-bold md:h2-bold">SnoutSpace</h2>
+          <h2 className="h3-bold md:h2-bold gradient-text">SnoutSpace</h2>
         </Link>
 
         <div className="flex gap-4">
@@ -36,7 +36,7 @@ useEffect(() => {
             <img
               src={user.imageUrl || "/assets/images/profile-placeholder.svg"}
               alt="profile"
-              className="h-8 w-8 rounded-full"
+              className="h-8 w-8 rounded-full ring-2 ring-primary-500/30"
             />
           </Link>
         </div>

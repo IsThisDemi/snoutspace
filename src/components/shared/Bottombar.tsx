@@ -14,7 +14,9 @@ const Bottombar = () => {
             to={link.route}
             key={link.label}
             className={`${
-              isActive && "bg-primary-500 rounded-[10px]"
+              isActive
+                ? "bg-gradient-to-r from-primary-600 to-primary-500 rounded-[10px] shadow-[0_0_12px_#a78bfa40]"
+                : ""
             } flex-center flex-col gap-1 p-2 transition`}
           >
             <img

@@ -25,7 +25,7 @@ const PostCard = ({ post }: PostCardProps) => {
                 "/assets/icons/profile-placeholder.svg"
               }
               alt="creator"
-              className="w-12 lg:h-12 rounded-full"
+              className="w-12 lg:h-12 rounded-full ring-2 ring-primary-500/30"
             />
           </Link>
 
@@ -63,18 +63,21 @@ const PostCard = ({ post }: PostCardProps) => {
           <p>{post.caption}</p>
           <ul className="flex gap-1 mt-2">
             {post.tags.map((tag: string, index: number) => (
-              <li key={`${tag}${index}`} className="text-light-3 small-regular">
+              <li key={`${tag}${index}`} className="text-primary-500/70 small-regular">
                 #{tag}
               </li>
             ))}
           </ul>
         </div>
 
-        <img
-          src={post.imageUrl || "/assets/icons/profile-placeholder.svg"}
-          alt="post image"
-          className="post-card_img"
-        />
+        <div className="relative group overflow-hidden rounded-[24px] mb-5">
+          <img
+            src={post.imageUrl || "/assets/icons/profile-placeholder.svg"}
+            alt="post image"
+            className="h-64 xs:h-[400px] lg:h-[450px] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[24px]" />
+        </div>
       </Link>
 
       <PostStats post={post} userId={user.id} />

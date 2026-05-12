@@ -24,13 +24,13 @@ useEffect(() => {
             width={36}
             height={36}
           />
-          <h2 className="h3-bold md:h2-bold">SnoutSpace</h2>
+          <h2 className="h3-bold md:h2-bold gradient-text">SnoutSpace</h2>
         </Link>
         <Link to={`/profile/${user.id}`} className="flex gap-3 items-center">
           <img
             src={user.imageUrl || "/assets/icons/profile-placeholder.svg"}
             alt="profile"
-            className="h-14 w-14 rounded-full"
+            className="h-14 w-14 rounded-full ring-2 ring-primary-500/30"
           />
           <div className="flex flex-col">
             <p className="body-bold">{user.name}</p>
@@ -46,7 +46,9 @@ useEffect(() => {
               <li
                 key={link.label}
                 className={`leftsidebar-link group ${
-                  isActive && "bg-primary-500"
+                  isActive
+                    ? "bg-gradient-to-r from-primary-600 to-primary-500 shadow-[0_0_16px_#a78bfa40]"
+                    : ""
                 }`}
               >
                 <NavLink
