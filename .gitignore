@@ -22,3 +22,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+server/.env
+server/.env.local
+
+# Uploaded files (keep the uploads dir via .gitkeep)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Test/tooling artifacts
+.playwright-mcp/
+.claude/
