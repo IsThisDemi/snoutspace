@@ -114,6 +114,14 @@ export async function getRecentPosts() {
   }
 }
 
+export async function getTrendingPosts() {
+  return apiFetch("/posts/trending");
+}
+
+export async function getPostsByTag(tag: string) {
+  return apiFetch(`/posts/tag/${encodeURIComponent(tag)}`);
+}
+
 export async function searchPosts(searchTerm: string) {
   try {
     return await apiFetch(`/posts/search?q=${encodeURIComponent(searchTerm)}`);
@@ -194,13 +202,35 @@ export async function getUserPosts(userId?: string) {
 }
 
 // ============================================================
+// COMMENTS
+// ============================================================
+
+export async function getPostComments(postId: string) {
+  return apiFetch(`/posts/${postId}/comments`);
+}
+
+export async function createComment(postId: string, body: string) {
+  return apiFetch(`/posts/${postId}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ body }),
+  });
+}
+
+export async function deleteComment(postId: string, commentId: string) {
+  return apiFetch(`/posts/${postId}/comments/${commentId}`, { method: "DELETE" });
+}
+
+// ============================================================
 // USERS
 // ============================================================
 
-export async function getUsers(limit?: number) {
+export async function getUsers(limit?: number, q?: string) {
   try {
-    const params = limit ? `?limit=${limit}` : "";
-    return await apiFetch(`/users${params}`);
+    const params = new URLSearchParams();
+    if (limit) params.append("limit", String(limit));
+    if (q) params.append("q", q);
+    const qs = params.toString();
+    return await apiFetch(`/users${qs ? `?${qs}` : ""}`);
   } catch (error) {
     console.log(error);
   }
@@ -208,6 +238,14 @@ export async function getUsers(limit?: number) {
 
 export async function getUserById(userId: string) {
   return apiFetch(`/users/${userId}`);
+}
+
+export async function followUser(userId: string) {
+  return apiFetch(`/users/${userId}/follow`, { method: "POST" });
+}
+
+export async function unfollowUser(userId: string) {
+  return apiFetch(`/users/${userId}/follow`, { method: "DELETE" });
 }
 
 export async function updateUser(user: IUpdateUser) {

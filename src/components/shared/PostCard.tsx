@@ -61,10 +61,16 @@ const PostCard = ({ post }: PostCardProps) => {
       <Link to={`/posts/${post.id}`}>
         <div className="small-medium lg:base-medium py-5">
           <p>{post.caption}</p>
-          <ul className="flex gap-1 mt-2">
+          <ul className="flex flex-wrap gap-1 mt-2">
             {post.tags.map((tag: string, index: number) => (
-              <li key={`${tag}${index}`} className="text-primary-500/70 small-regular">
-                #{tag}
+              <li key={`${tag}${index}`}>
+                <Link
+                  to={`/tags/${tag}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-primary-500/70 small-regular hover:text-primary-400 transition"
+                >
+                  #{tag}
+                </Link>
               </li>
             ))}
           </ul>

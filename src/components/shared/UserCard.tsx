@@ -1,12 +1,31 @@
 import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
 import { IDocument } from "@/types";
+import { useUserContext } from "@/context/AuthContext";
+import { useFollowUser, useUnfollowUser } from "@/lib/react-query/queries";
+import Loader from "./Loader";
 
 type UserCardProps = {
   user: IDocument;
 };
 
 const UserCard = ({ user }: UserCardProps) => {
+  const { user: currentUser } = useUserContext();
+  const { mutate: follow, isPending: isFollowing } = useFollowUser(user.id);
+  const { mutate: unfollow, isPending: isUnfollowing } = useUnfollowUser(user.id);
+
+  const isOwnProfile = currentUser.id === user.id;
+  const isFollowed = user.isFollowedByCurrentUser;
+
+  const handleFollowToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isFollowed) {
+      unfollow();
+    } else {
+      follow();
+    }
+  };
+
   return (
     <Link to={`/profile/${user.id}`} className="user-card">
       <img
@@ -24,9 +43,23 @@ const UserCard = ({ user }: UserCardProps) => {
         </p>
       </div>
 
-      <Button type="button" size="sm" className="shad-button_primary px-5">
-        Follow
-      </Button>
+      {!isOwnProfile && (
+        <Button
+          type="button"
+          size="sm"
+          className="shad-button_primary px-5"
+          onClick={handleFollowToggle}
+          disabled={isFollowing || isUnfollowing}
+        >
+          {isFollowing || isUnfollowing ? (
+            <Loader />
+          ) : isFollowed ? (
+            "Unfollow"
+          ) : (
+            "Follow"
+          )}
+        </Button>
+      )}
     </Link>
   );
 };

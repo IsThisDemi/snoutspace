@@ -14,7 +14,12 @@ export enum QUERY_KEYS {
   GET_POST_BY_ID = "getPostById",
   GET_USER_POSTS = "getUserPosts",
   GET_FILE_PREVIEW = "getFilePreview",
+  GET_TRENDING_POSTS = "getTrendingPosts",
+  GET_POSTS_BY_TAG = "getPostsByTag",
 
   //  SEARCH KEYS
   SEARCH_POSTS = "getSearchPosts",
+
+  // COMMENT KEYS
+  GET_POST_COMMENTS = "getPostComments",
 }

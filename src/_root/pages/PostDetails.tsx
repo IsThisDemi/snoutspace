@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui";
 import { Loader } from "@/components/shared";
 import { GridPostList, PostStats } from "@/components/shared";
+import CommentSection from "@/components/shared/CommentSection";
 
 import {
   useGetPostById,
@@ -73,14 +74,14 @@ const PostDetails = () => {
                     "/assets/icons/profile-placeholder.svg"
                   }
                   alt="creator"
-                  className="w-8 h-8 lg:w-12 lg:h-12 rounded-full"
+                  className="w-8 h-8 lg:w-12 lg:h-12 rounded-full ring-2 ring-primary-500/30"
                 />
                 <div className="flex gap-1 flex-col">
                   <p className="base-medium lg:body-bold text-light-1">
                     {post?.creator?.name}
                   </p>
                   <div className="flex-center gap-2 text-light-3">
-                    <p className="subtle-semibold lg:small-regular ">
+                    <p className="subtle-semibold lg:small-regular">
                       {multiFormatDateString(post?.createdAt)}
                     </p>
                     •
@@ -125,13 +126,15 @@ const PostDetails = () => {
 
             <div className="flex flex-col flex-1 w-full small-medium lg:base-regular">
               <p>{post?.caption}</p>
-              <ul className="flex gap-1 mt-2">
+              <ul className="flex flex-wrap gap-1 mt-2">
                 {post?.tags.map((tag: string, index: number) => (
-                  <li
-                    key={`${tag}${index}`}
-                    className="text-light-3 small-regular"
-                  >
-                    #{tag}
+                  <li key={`${tag}${index}`}>
+                    <Link
+                      to={`/tags/${tag}`}
+                      className="text-primary-500/70 small-regular hover:text-primary-400 transition"
+                    >
+                      #{tag}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -140,6 +143,10 @@ const PostDetails = () => {
             <div className="w-full">
               <PostStats post={post} userId={user.id} />
             </div>
+
+            <hr className="border w-full border-dark-4/80" />
+
+            <CommentSection postId={post.id} />
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import { Post } from "../models/Post";
 import { Save } from "../models/Save";
+import { Comment } from "../models/Comment";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { upload } from "./files";
 
@@ -24,6 +25,23 @@ function serializePost(post: any) {
         }
       : p.creator,
     __v: undefined,
+  };
+}
+
+function serializeComment(comment: any) {
+  const c = comment.toObject ? comment.toObject() : comment;
+  return {
+    id: c._id.toString(),
+    body: c.body,
+    createdAt: c.createdAt,
+    author: c.author
+      ? {
+          id: c.author._id?.toString() ?? c.author.toString(),
+          name: c.author.name,
+          username: c.author.username,
+          imageUrl: c.author.imageUrl,
+        }
+      : c.author,
   };
 }
 
@@ -49,6 +67,28 @@ router.get("/recent", requireAuth, async (_req: AuthRequest, res: Response): Pro
   const posts = await Post.find()
     .sort({ createdAt: -1 })
     .limit(20)
+    .populate("creator", "-passwordHash");
+
+  res.json({ documents: posts.map(serializePost), total: posts.length });
+});
+
+router.get("/trending", requireAuth, async (_req: AuthRequest, res: Response): Promise<void> => {
+  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const posts = await Post.aggregate([
+    { $match: { createdAt: { $gte: since } } },
+    { $addFields: { likeCount: { $size: "$likes" } } },
+    { $sort: { likeCount: -1, createdAt: -1 } },
+    { $limit: 20 },
+  ]);
+
+  const populated = await Post.populate(posts, { path: "creator", select: "-passwordHash" });
+  res.json({ documents: populated.map(serializePost), total: populated.length });
+});
+
+router.get("/tag/:tag", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const tag = req.params.tag.toLowerCase();
+  const posts = await Post.find({ tags: tag })
+    .sort({ createdAt: -1 })
     .populate("creator", "-passwordHash");
 
   res.json({ documents: posts.map(serializePost), total: posts.length });
@@ -150,6 +190,7 @@ router.delete("/:id", requireAuth, async (req: AuthRequest, res: Response): Prom
   if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
 
   await Save.deleteMany({ post: post._id });
+  await Comment.deleteMany({ post: post._id });
   await post.deleteOne();
   res.json({ status: "ok" });
 });
@@ -168,6 +209,49 @@ router.patch("/:id/like", requireAuth, async (req: AuthRequest, res: Response): 
     return;
   }
   res.json(serializePost(post));
+});
+
+// ── Comments ──────────────────────────────────────────────────────────────────
+
+router.get("/:id/comments", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const comments = await Comment.find({ post: req.params.id })
+    .sort({ createdAt: 1 })
+    .populate("author", "name username imageUrl");
+
+  res.json({ documents: comments.map(serializeComment), total: comments.length });
+});
+
+router.post("/:id/comments", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const { body } = req.body;
+  if (!body?.trim()) {
+    res.status(400).json({ message: "Comment body required" });
+    return;
+  }
+
+  const post = await Post.findById(req.params.id);
+  if (!post) {
+    res.status(404).json({ message: "Post not found" });
+    return;
+  }
+
+  const comment = await Comment.create({ post: req.params.id, author: req.userId, body: body.trim() });
+  const populated = await comment.populate("author", "name username imageUrl");
+  res.status(201).json(serializeComment(populated));
+});
+
+router.delete("/:id/comments/:commentId", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const comment = await Comment.findById(req.params.commentId);
+  if (!comment) {
+    res.status(404).json({ message: "Comment not found" });
+    return;
+  }
+  if (comment.author.toString() !== req.userId) {
+    res.status(403).json({ message: "Forbidden" });
+    return;
+  }
+
+  await comment.deleteOne();
+  res.json({ status: "ok" });
 });
 
 export default router;

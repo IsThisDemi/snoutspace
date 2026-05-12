@@ -7,14 +7,20 @@ import {
 } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
 import {
+  createComment,
   createPost,
   createUserAccount,
+  deleteComment,
   deletePost,
   deleteSavedPost,
+  followUser,
   getCurrentUser,
   getInfinitePosts,
   getPostById,
+  getPostComments,
+  getPostsByTag,
   getRecentPosts,
+  getTrendingPosts,
   getUserById,
   getUserPosts,
   getUsers,
@@ -23,6 +29,7 @@ import {
   searchPosts,
   signInAccount,
   signOutAccount,
+  unfollowUser,
   updatePost,
   updateUser,
 } from "../api/api";
@@ -59,15 +66,13 @@ export const useGetPosts = () => {
     queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
     queryFn: getInfinitePosts as any,
     getNextPageParam: (lastPage: any) => {
-      // If there's no data, there are no more pages.
       if (lastPage && lastPage.documents.length === 0) {
         return null;
       }
-
       const lastId = lastPage.documents[lastPage.documents.length - 1].id;
       return lastId;
     },
-    initialPageParam: null, // Start from the first page.
+    initialPageParam: null,
   });
 };
 
@@ -83,6 +88,21 @@ export const useGetRecentPosts = () => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
     queryFn: getRecentPosts,
+  });
+};
+
+export const useGetTrendingPosts = () => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_TRENDING_POSTS],
+    queryFn: getTrendingPosts,
+  });
+};
+
+export const useGetPostsByTag = (tag: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_POSTS_BY_TAG, tag],
+    queryFn: () => getPostsByTag(tag),
+    enabled: !!tag,
   });
 };
 
@@ -113,7 +133,6 @@ export const useGetUserPosts = (userId?: string) => {
     enabled: !!userId,
   });
 };
-
 
 export const useLikePost = () => {
   const queryClient = useQueryClient();
@@ -204,6 +223,42 @@ export const useDeletePost = () => {
 };
 
 // ============================================================
+// COMMENT QUERIES
+// ============================================================
+
+export const useGetPostComments = (postId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_POST_COMMENTS, postId],
+    queryFn: () => getPostComments(postId),
+    enabled: !!postId,
+  });
+};
+
+export const useCreateComment = (postId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: string) => createComment(postId, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_POST_COMMENTS, postId],
+      });
+    },
+  });
+};
+
+export const useDeleteComment = (postId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (commentId: string) => deleteComment(postId, commentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_POST_COMMENTS, postId],
+      });
+    },
+  });
+};
+
+// ============================================================
 // USER QUERIES
 // ============================================================
 
@@ -214,12 +269,12 @@ export const useGetCurrentUser = () => {
   });
 };
 
-export const useGetUsers = (limit?: number) => {
+export const useGetUsers = (limit?: number, q?: string) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.GET_USERS],
-    queryFn: () => getUsers(limit),
+    queryKey: [QUERY_KEYS.GET_USERS, limit, q],
+    queryFn: () => getUsers(limit, q),
   });
-}
+};
 
 export const useGetUserById = (userId: string) => {
   return useQuery({
@@ -227,7 +282,29 @@ export const useGetUserById = (userId: string) => {
     queryFn: () => getUserById(userId),
     enabled: !!userId,
   });
-}
+};
+
+export const useFollowUser = (targetUserId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => followUser(targetUserId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USER_BY_ID, targetUserId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USERS] });
+    },
+  });
+};
+
+export const useUnfollowUser = (targetUserId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => unfollowUser(targetUserId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USER_BY_ID, targetUserId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USERS] });
+    },
+  });
+};
 
 export const useUpdateUser = () => {
   const queryClient = useQueryClient();

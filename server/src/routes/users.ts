@@ -4,6 +4,7 @@ import fs from "fs";
 import { User } from "../models/User";
 import { Post } from "../models/Post";
 import { Save } from "../models/Save";
+import { Follow } from "../models/Follow";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { upload } from "./files";
 
@@ -41,12 +42,45 @@ function serializePost(post: any) {
 
 router.get("/", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+  const q = req.query.q as string | undefined;
 
-  let query = User.find().sort({ createdAt: -1 });
+  let dbQuery: any = {};
+  if (q) {
+    dbQuery = {
+      $or: [
+        { name: { $regex: q, $options: "i" } },
+        { username: { $regex: q, $options: "i" } },
+      ],
+    };
+  }
+
+  let query = User.find(dbQuery).sort({ createdAt: -1 });
   if (limit) query = query.limit(limit);
 
   const users = await query;
-  res.json({ documents: users.map(serializeUser), total: users.length });
+
+  const followingSet = new Set(
+    (await Follow.find({ follower: req.userId }).select("following")).map(
+      (f) => f.following.toString()
+    )
+  );
+
+  const docs = await Promise.all(
+    users.map(async (u) => {
+      const [followerCount, followingCount] = await Promise.all([
+        Follow.countDocuments({ following: u._id }),
+        Follow.countDocuments({ follower: u._id }),
+      ]);
+      return {
+        ...serializeUser(u),
+        followerCount,
+        followingCount,
+        isFollowedByCurrentUser: followingSet.has(u._id.toString()),
+      };
+    })
+  );
+
+  res.json({ documents: docs, total: docs.length });
 });
 
 router.get("/:id", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
@@ -56,12 +90,15 @@ router.get("/:id", requireAuth, async (req: AuthRequest, res: Response): Promise
     return;
   }
 
-  const [saves, posts] = await Promise.all([
+  const [saves, posts, followerCount, followingCount, existingFollow] = await Promise.all([
     Save.find({ user: user._id }).populate({
       path: "post",
       populate: { path: "creator", select: "-passwordHash" },
     }),
     Post.find({ creator: user._id }).sort({ createdAt: -1 }).populate("creator", "-passwordHash"),
+    Follow.countDocuments({ following: user._id }),
+    Follow.countDocuments({ follower: user._id }),
+    Follow.findOne({ follower: req.userId, following: user._id }),
   ]);
 
   const serializedSaves = saves.map((s: any) => ({
@@ -70,7 +107,14 @@ router.get("/:id", requireAuth, async (req: AuthRequest, res: Response): Promise
     createdAt: s.createdAt,
   }));
 
-  res.json({ ...serializeUser(user), save: serializedSaves, posts: posts.map(serializePost) });
+  res.json({
+    ...serializeUser(user),
+    save: serializedSaves,
+    posts: posts.map(serializePost),
+    followerCount,
+    followingCount,
+    isFollowedByCurrentUser: !!existingFollow,
+  });
 });
 
 router.get("/:userId/posts", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
@@ -79,6 +123,34 @@ router.get("/:userId/posts", requireAuth, async (req: AuthRequest, res: Response
     .populate("creator", "-passwordHash");
 
   res.json({ documents: posts.map(serializePost), total: posts.length });
+});
+
+router.post("/:id/follow", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  if (req.params.id === req.userId) {
+    res.status(400).json({ message: "Cannot follow yourself" });
+    return;
+  }
+
+  const target = await User.findById(req.params.id);
+  if (!target) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+
+  await Follow.findOneAndUpdate(
+    { follower: req.userId, following: req.params.id },
+    { follower: req.userId, following: req.params.id },
+    { upsert: true, new: true }
+  );
+
+  const followerCount = await Follow.countDocuments({ following: req.params.id });
+  res.json({ followerCount });
+});
+
+router.delete("/:id/follow", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  await Follow.findOneAndDelete({ follower: req.userId, following: req.params.id });
+  const followerCount = await Follow.countDocuments({ following: req.params.id });
+  res.json({ followerCount });
 });
 
 router.put("/:id", requireAuth, upload.single("file"), async (req: AuthRequest, res: Response): Promise<void> => {
