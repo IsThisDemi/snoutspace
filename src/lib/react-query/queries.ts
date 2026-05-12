@@ -42,6 +42,15 @@ import {
   unfollowUser,
   updatePost,
   updateUser,
+  repostPost,
+  blockUser,
+  unblockUser,
+  muteUser,
+  unmuteUser,
+  searchPostsByTag,
+  getNotifications,
+  getUnreadNotificationCount,
+  markNotificationsRead,
 } from "../api/api";
 
 // ============================================================
@@ -247,7 +256,7 @@ export const useGetPostComments = (postId: string) => {
 export const useCreateComment = (postId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: string) => createComment(postId, body),
+    mutationFn: (payload: string | { body: string; parentId?: string }) => createComment(postId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_POST_COMMENTS, postId],
@@ -408,6 +417,109 @@ export const useUpdateUser = () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_USER_BY_ID, data?.id],
       });
+    },
+  });
+};
+
+// ============================================================
+// REPOST QUERIES
+// ============================================================
+
+export const useRepostPost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (postId: string) => repostPost(postId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_RECENT_POSTS] });
+    },
+  });
+};
+
+// ============================================================
+// BLOCK / MUTE QUERIES
+// ============================================================
+
+export const useBlockUser = (targetId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => blockUser(targetId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USER_BY_ID, targetId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_RECENT_POSTS] });
+    },
+  });
+};
+
+export const useUnblockUser = (targetId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => unblockUser(targetId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USER_BY_ID, targetId] });
+    },
+  });
+};
+
+export const useMuteUser = (targetId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => muteUser(targetId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USER_BY_ID, targetId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_RECENT_POSTS] });
+    },
+  });
+};
+
+export const useUnmuteUser = (targetId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => unmuteUser(targetId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USER_BY_ID, targetId] });
+    },
+  });
+};
+
+// ============================================================
+// SEARCH BY TAG
+// ============================================================
+
+export const useSearchPostsByTag = (q: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_POSTS_BY_TAG, q],
+    queryFn: () => searchPostsByTag(q),
+    enabled: !!q,
+  });
+};
+
+// ============================================================
+// NOTIFICATION QUERIES
+// ============================================================
+
+export const useGetNotifications = () => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_NOTIFICATIONS],
+    queryFn: getNotifications,
+    refetchInterval: 30000,
+  });
+};
+
+export const useGetUnreadCount = () => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_UNREAD_COUNT],
+    queryFn: getUnreadNotificationCount,
+    refetchInterval: 15000,
+  });
+};
+
+export const useMarkNotificationsRead = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: markNotificationsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_NOTIFICATIONS] });
+      queryClient.setQueryData([QUERY_KEYS.GET_UNREAD_COUNT], { count: 0 });
     },
   });
 };

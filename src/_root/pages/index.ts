@@ -12,3 +12,5 @@ export { default as TagFeed } from "./TagFeed";
 export { default as UserRedirect } from "./UserRedirect";
 export { default as Messages } from "./Messages";
 export { default as AdminReports } from "./AdminReports";
+export { default as Notifications } from "./Notifications";
+export { default as Search } from "./Search";

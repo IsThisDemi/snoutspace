@@ -16,6 +16,8 @@ import fileRoutes from "./routes/files";
 import storyRoutes from "./routes/stories";
 import messageRoutes from "./routes/messages";
 import reportRoutes from "./routes/reports";
+import notificationRoutes from "./routes/notifications";
+import { setIO } from "./io";
 
 import { Conversation } from "./models/Conversation";
 import { Message } from "./models/Message";
@@ -39,12 +41,14 @@ app.use("/api", fileRoutes);
 app.use("/api/stories", storyRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // ── Socket.io ─────────────────────────────────────────────────────────────────
 
 const io = new Server(httpServer, {
   cors: { origin: CLIENT_URL, credentials: true },
 });
+setIO(io);
 
 io.use((socket, next) => {
   const rawCookie = socket.handshake.headers.cookie || "";

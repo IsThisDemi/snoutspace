@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { LikedPosts } from "@/_root/pages";
 import { useUserContext } from "@/context/AuthContext";
-import { useGetUserById, useFollowUser, useUnfollowUser } from "@/lib/react-query/queries";
+import { useGetUserById, useFollowUser, useUnfollowUser, useBlockUser, useUnblockUser, useMuteUser, useUnmuteUser } from "@/lib/react-query/queries";
 import Loader from "@/components/shared/Loader";
 import GridPostList from "@/components/shared/GridPostList";
 
@@ -34,6 +34,10 @@ const Profile = () => {
   const { data: currentUser } = useGetUserById(id || "");
   const { mutate: follow, isPending: isFollowing } = useFollowUser(id || "");
   const { mutate: unfollow, isPending: isUnfollowing } = useUnfollowUser(id || "");
+  const { mutate: block } = useBlockUser(id || "");
+  const { mutate: unblock } = useUnblockUser(id || "");
+  const { mutate: mute } = useMuteUser(id || "");
+  const { mutate: unmute } = useUnmuteUser(id || "");
 
   if (!currentUser)
     return (
@@ -91,37 +95,47 @@ const Profile = () => {
             </p>
           </div>
 
-          <div className="flex justify-center gap-4">
+          <div className="flex flex-col items-center gap-3">
             {isOwnProfile ? (
               <Link
                 to={`/update-profile/${currentUser.id}`}
                 className="h-12 bg-dark-4 px-5 text-light-1 flex-center gap-2 rounded-lg"
               >
-                <img
-                  src={"/assets/icons/edit.svg"}
-                  alt="edit"
-                  width={20}
-                  height={20}
-                />
-                <p className="flex whitespace-nowrap small-medium">
-                  Edit Profile
-                </p>
+                <img src={"/assets/icons/edit.svg"} alt="edit" width={20} height={20} />
+                <p className="flex whitespace-nowrap small-medium">Edit Profile</p>
               </Link>
             ) : (
-              <Button
-                type="button"
-                className="shad-button_primary px-8"
-                onClick={handleFollowToggle}
-                disabled={isFollowing || isUnfollowing}
-              >
-                {isFollowing || isUnfollowing ? (
-                  <Loader />
-                ) : isFollowed ? (
-                  "Unfollow"
-                ) : (
-                  "Follow"
-                )}
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  className="shad-button_primary px-8"
+                  onClick={handleFollowToggle}
+                  disabled={isFollowing || isUnfollowing}
+                >
+                  {isFollowing || isUnfollowing ? <Loader /> : isFollowed ? "Unfollow" : "Follow"}
+                </Button>
+
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className={`shad-button_ghost text-xs px-3 py-1.5 ${currentUser.isMutedByCurrentUser ? "text-primary-500" : "text-light-4"}`}
+                    onClick={() => currentUser.isMutedByCurrentUser ? unmute() : mute()}
+                    title={currentUser.isMutedByCurrentUser ? "Unmute" : "Mute posts"}
+                  >
+                    {currentUser.isMutedByCurrentUser ? "Unmute" : "Mute"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className={`shad-button_ghost text-xs px-3 py-1.5 ${currentUser.isBlockedByCurrentUser ? "text-red-400" : "text-light-4"}`}
+                    onClick={() => currentUser.isBlockedByCurrentUser ? unblock() : block()}
+                    title={currentUser.isBlockedByCurrentUser ? "Unblock" : "Block user"}
+                  >
+                    {currentUser.isBlockedByCurrentUser ? "Unblock" : "Block"}
+                  </Button>
+                </div>
+              </>
             )}
           </div>
         </div>

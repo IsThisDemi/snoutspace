@@ -5,25 +5,26 @@ import { Button } from "../ui/button";
 type FileUploaderProps = {
   fieldChange: (FILES: File[]) => void;
   mediaUrl: string;
+  multiple?: boolean;
 };
 
-const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
-  const [file, setfile] = useState<File[]>([]);
-  const [fileUrl, setfileUrl] = useState(mediaUrl);
+const FileUploader = ({ fieldChange, mediaUrl, multiple = false }: FileUploaderProps) => {
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>(mediaUrl ? [mediaUrl] : []);
 
   const onDrop = useCallback(
     (acceptedFiles: FileWithPath[]) => {
-      setfile(acceptedFiles);
+      setFiles(acceptedFiles);
       fieldChange(acceptedFiles);
-      setfileUrl(URL.createObjectURL(acceptedFiles[0]));
+      setPreviews(acceptedFiles.map((f) => URL.createObjectURL(f)));
     },
-    [file]
+    []
   );
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    accept: {
-      "image/*": [".png", ".jpg", ".jpeg", ".svg"],
-    },
+    accept: { "image/*": [".png", ".jpg", ".jpeg", ".svg"] },
+    multiple,
   });
 
   return (
@@ -32,26 +33,32 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
       className="flex flex-center flex-col bg-dark-3 rounded-xl cursor-pointer"
     >
       <input {...getInputProps()} className="cursor-pointer" />
-      {fileUrl ? (
+      {previews.length > 0 ? (
         <>
-          <div className="flex flex-1 justify-center w-full p-5 lg:p-10">
-            <img src={fileUrl} alt="image" className="file_uploader-img" />
-          </div>
-          <p className="file_uploader-label">Click or drag photo to replace</p>
+          {previews.length === 1 ? (
+            <div className="flex flex-1 justify-center w-full p-5 lg:p-10">
+              <img src={previews[0]} alt="image" className="file_uploader-img" />
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2 p-5 justify-center w-full">
+              {previews.map((url, i) => (
+                <img key={i} src={url} alt={`photo ${i + 1}`} className="h-24 w-24 object-cover rounded-lg ring-1 ring-primary-500/20" />
+              ))}
+            </div>
+          )}
+          <p className="file_uploader-label">
+            {files.length > 1 ? `${files.length} photos selected — click to change` : "Click or drag photo to replace"}
+          </p>
         </>
       ) : (
         <div className="file_uploader-box">
-          <img
-            src="/assets/icons/file-upload.svg"
-            alt="file-upload"
-            width={96}
-            height={77}
-          />
+          <img src="/assets/icons/file-upload.svg" alt="file-upload" width={96} height={77} />
           <h3 className="base-medium text-light-2 mb-2 mt-6">
-            Drag photo here
+            {multiple ? "Drag photos here" : "Drag photo here"}
           </h3>
-          <p className="text-light-4 small-regular mb-6">SVG, PNG, JPG</p>
-
+          <p className="text-light-4 small-regular mb-6">
+            {multiple ? "SVG, PNG, JPG — up to 10 photos" : "SVG, PNG, JPG"}
+          </p>
           <Button className="shad-button_dark_4">Select from device</Button>
         </div>
       )}

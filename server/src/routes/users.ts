@@ -5,8 +5,10 @@ import { User } from "../models/User";
 import { Post } from "../models/Post";
 import { Save } from "../models/Save";
 import { Follow } from "../models/Follow";
+import { Notification } from "../models/Notification";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { upload } from "./files";
+import { emitToUser } from "../io";
 
 const router = Router();
 const UPLOADS_DIR = path.join(__dirname, "../../uploads");
@@ -20,6 +22,8 @@ function serializeUser(user: any) {
     passwordHash: undefined,
     __v: undefined,
     isPrivate: u.isPrivate ?? false,
+    blocked: undefined,
+    muted: undefined,
   };
 }
 
@@ -60,11 +64,13 @@ router.get("/", requireAuth, async (req: AuthRequest, res: Response): Promise<vo
 
   const users = await query;
 
-  const followingSet = new Set(
-    (await Follow.find({ follower: req.userId }).select("following")).map(
-      (f) => f.following.toString()
-    )
-  );
+  const [followingSet, currentUser] = await Promise.all([
+    Follow.find({ follower: req.userId }).select("following").then((fs) => new Set(fs.map((f) => f.following.toString()))),
+    User.findById(req.userId).select("blocked muted"),
+  ]);
+
+  const blockedSet = new Set((currentUser?.blocked ?? []).map((id) => id.toString()));
+  const mutedSet = new Set((currentUser?.muted ?? []).map((id) => id.toString()));
 
   const docs = await Promise.all(
     users.map(async (u) => {
@@ -77,6 +83,8 @@ router.get("/", requireAuth, async (req: AuthRequest, res: Response): Promise<vo
         followerCount,
         followingCount,
         isFollowedByCurrentUser: followingSet.has(u._id.toString()),
+        isBlockedByCurrentUser: blockedSet.has(u._id.toString()),
+        isMutedByCurrentUser: mutedSet.has(u._id.toString()),
       };
     })
   );
@@ -110,14 +118,17 @@ router.get("/:id", requireAuth, async (req: AuthRequest, res: Response): Promise
     return;
   }
 
-  const [followerCount, followingCount, existingFollow] = await Promise.all([
+  const [followerCount, followingCount, existingFollow, currentUser] = await Promise.all([
     Follow.countDocuments({ following: user._id }),
     Follow.countDocuments({ follower: user._id }),
     Follow.findOne({ follower: req.userId, following: user._id }),
+    User.findById(req.userId).select("blocked muted"),
   ]);
 
   const isFollowing = !!existingFollow;
   const isOwnProfile = req.userId === user._id.toString();
+  const isBlockedByCurrentUser = (currentUser?.blocked ?? []).map((id) => id.toString()).includes(user._id.toString());
+  const isMutedByCurrentUser = (currentUser?.muted ?? []).map((id) => id.toString()).includes(user._id.toString());
 
   if (user.isPrivate && !isFollowing && !isOwnProfile) {
     res.json({
@@ -125,6 +136,8 @@ router.get("/:id", requireAuth, async (req: AuthRequest, res: Response): Promise
       followerCount,
       followingCount,
       isFollowedByCurrentUser: false,
+      isBlockedByCurrentUser,
+      isMutedByCurrentUser,
       isPrivateBlocked: true,
       save: [],
       posts: [],
@@ -153,6 +166,8 @@ router.get("/:id", requireAuth, async (req: AuthRequest, res: Response): Promise
     followerCount,
     followingCount,
     isFollowedByCurrentUser: isFollowing,
+    isBlockedByCurrentUser,
+    isMutedByCurrentUser,
   });
 });
 
@@ -183,6 +198,21 @@ router.post("/:id/follow", requireAuth, async (req: AuthRequest, res: Response):
   );
 
   const followerCount = await Follow.countDocuments({ following: req.params.id });
+
+  // Notify the followed user
+  const notif = await Notification.findOneAndUpdate(
+    { recipient: req.params.id, actor: req.userId, type: "follow" },
+    { recipient: req.params.id, actor: req.userId, type: "follow", read: false },
+    { upsert: true, new: true }
+  );
+  emitToUser(req.params.id, "notification", {
+    id: notif._id.toString(),
+    type: "follow",
+    actorId: req.userId,
+    read: false,
+    createdAt: notif.createdAt,
+  });
+
   res.json({ followerCount });
 });
 
@@ -191,6 +221,41 @@ router.delete("/:id/follow", requireAuth, async (req: AuthRequest, res: Response
   const followerCount = await Follow.countDocuments({ following: req.params.id });
   res.json({ followerCount });
 });
+
+// ── BLOCK ──────────────────────────────────────────────────────────────────────
+
+router.post("/:id/block", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  if (req.params.id === req.userId) {
+    res.status(400).json({ message: "Cannot block yourself" });
+    return;
+  }
+  await User.findByIdAndUpdate(req.userId, { $addToSet: { blocked: req.params.id } });
+  await Follow.findOneAndDelete({ follower: req.userId, following: req.params.id });
+  res.json({ status: "ok" });
+});
+
+router.delete("/:id/block", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  await User.findByIdAndUpdate(req.userId, { $pull: { blocked: req.params.id } });
+  res.json({ status: "ok" });
+});
+
+// ── MUTE ───────────────────────────────────────────────────────────────────────
+
+router.post("/:id/mute", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  if (req.params.id === req.userId) {
+    res.status(400).json({ message: "Cannot mute yourself" });
+    return;
+  }
+  await User.findByIdAndUpdate(req.userId, { $addToSet: { muted: req.params.id } });
+  res.json({ status: "ok" });
+});
+
+router.delete("/:id/mute", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  await User.findByIdAndUpdate(req.userId, { $pull: { muted: req.params.id } });
+  res.json({ status: "ok" });
+});
+
+// ── UPDATE PROFILE ─────────────────────────────────────────────────────────────
 
 router.put("/:id", requireAuth, upload.single("file"), async (req: AuthRequest, res: Response): Promise<void> => {
   if (req.params.id !== req.userId) {

@@ -6,6 +6,7 @@ import { GridPostList, PostStats } from "@/components/shared";
 import CommentSection from "@/components/shared/CommentSection";
 import MentionText from "@/components/shared/MentionText";
 import ReportModal from "@/components/shared/ReportModal";
+import ImageCarousel from "@/components/shared/ImageCarousel";
 
 import { useState } from "react";
 import {
@@ -60,10 +61,9 @@ const PostDetails = () => {
         <Loader />
       ) : (
         <div className="post_details-card">
-          <img
-            src={post?.imageUrl}
-            alt="creator"
-            className="post_details-img"
+          <ImageCarousel
+            images={post.images?.length > 0 ? post.images : [{ url: post.imageUrl, id: post.imageId }]}
+            className="post_details-img rounded-none"
           />
 
           <div className="post_details-info">

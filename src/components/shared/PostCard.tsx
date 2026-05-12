@@ -4,6 +4,7 @@ import { multiFormatDateString } from "@/lib/utils";
 import { useUserContext } from "@/context/AuthContext";
 import PostStats from "./PostStats";
 import MentionText from "./MentionText";
+import ImageCarousel from "./ImageCarousel";
 import { IDocument } from "@/types";
 
 type PostCardProps = {
@@ -15,8 +16,28 @@ const PostCard = ({ post }: PostCardProps) => {
 
   if (!post.creator) return;
 
+  const images: { url: string; id: string }[] =
+    post.images?.length > 0 ? post.images : [{ url: post.imageUrl, id: post.imageId }];
+
   return (
     <div className="post-card">
+      {/* Repost header */}
+      {post.repostOf && (
+        <div className="flex items-center gap-2 mb-3 text-light-4 tiny-medium">
+          <img src="/assets/icons/wallpaper.svg" alt="repost" width={14} height={14} className="opacity-50" />
+          <span>
+            Reposted from{" "}
+            <Link
+              to={`/profile/${post.repostOf.creator?.id}`}
+              className="text-primary-500/70 hover:text-primary-400 transition"
+              onClick={(e) => e.stopPropagation()}
+            >
+              @{post.repostOf.creator?.username}
+            </Link>
+          </span>
+        </div>
+      )}
+
       <div className="flex-between">
         <div className="flex items-center gap-3">
           <Link to={`/profile/${post.creator.id}`}>
@@ -77,14 +98,7 @@ const PostCard = ({ post }: PostCardProps) => {
           </ul>
         </div>
 
-        <div className="relative group overflow-hidden rounded-[24px] mb-5">
-          <img
-            src={post.imageUrl || "/assets/icons/profile-placeholder.svg"}
-            alt="post image"
-            className="h-64 xs:h-[400px] lg:h-[450px] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[24px]" />
-        </div>
+        <ImageCarousel images={images} />
       </Link>
 
       <PostStats post={post} userId={user.id} />

@@ -9,6 +9,8 @@ export interface IUserDocument extends Document {
   imageId: string;
   bio: string;
   isPrivate: boolean;
+  blocked: mongoose.Types.ObjectId[];
+  muted: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,6 +25,8 @@ const userSchema = new Schema<IUserDocument>(
     imageId: { type: String, default: "" },
     bio: { type: String, default: "" },
     isPrivate: { type: Boolean, default: false },
+    blocked: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    muted: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

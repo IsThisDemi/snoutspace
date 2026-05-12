@@ -86,7 +86,7 @@ export async function createPost(post: INewPost) {
   try {
     const form = new FormData();
     form.append("caption", post.caption);
-    form.append("file", post.file[0]);
+    post.file.forEach((f) => form.append("files", f));
     if (post.location) form.append("location", post.location);
     if (post.tags) form.append("tags", post.tags);
 
@@ -145,7 +145,7 @@ export async function updatePost(post: IUpdatePost) {
     form.append("caption", post.caption);
     form.append("location", post.location || "");
     form.append("tags", post.tags || "");
-    if (post.file.length > 0) form.append("file", post.file[0]);
+    if (post.file.length > 0) post.file.forEach((f) => form.append("files", f));
 
     return await apiFetchForm(`/posts/${post.postId}`, form, "PUT");
   } catch (error) {
@@ -209,10 +209,11 @@ export async function getPostComments(postId: string) {
   return apiFetch(`/posts/${postId}/comments`);
 }
 
-export async function createComment(postId: string, body: string) {
+export async function createComment(postId: string, payload: string | { body: string; parentId?: string }) {
+  const data = typeof payload === "string" ? { body: payload } : payload;
   return apiFetch(`/posts/${postId}/comments`, {
     method: "POST",
-    body: JSON.stringify({ body }),
+    body: JSON.stringify(data),
   });
 }
 
@@ -321,4 +322,56 @@ export async function updateUser(user: IUpdateUser) {
   } catch (error) {
     console.log(error);
   }
+}
+
+// ============================================================
+// REPOST
+// ============================================================
+
+export async function repostPost(postId: string) {
+  return apiFetch(`/posts/${postId}/repost`, { method: "POST" });
+}
+
+// ============================================================
+// BLOCK / MUTE
+// ============================================================
+
+export async function blockUser(userId: string) {
+  return apiFetch(`/users/${userId}/block`, { method: "POST" });
+}
+
+export async function unblockUser(userId: string) {
+  return apiFetch(`/users/${userId}/block`, { method: "DELETE" });
+}
+
+export async function muteUser(userId: string) {
+  return apiFetch(`/users/${userId}/mute`, { method: "POST" });
+}
+
+export async function unmuteUser(userId: string) {
+  return apiFetch(`/users/${userId}/mute`, { method: "DELETE" });
+}
+
+// ============================================================
+// SEARCH (tags)
+// ============================================================
+
+export async function searchPostsByTag(q: string) {
+  return apiFetch(`/posts/search?q=${encodeURIComponent(q)}&searchTags=true`);
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+export async function getNotifications() {
+  return apiFetch("/notifications");
+}
+
+export async function getUnreadNotificationCount() {
+  return apiFetch("/notifications/unread-count");
+}
+
+export async function markNotificationsRead() {
+  return apiFetch("/notifications/read", { method: "PATCH" });
 }

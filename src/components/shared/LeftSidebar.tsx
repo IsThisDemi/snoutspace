@@ -5,6 +5,7 @@ import { useUserContext } from "@/context/AuthContext";
 import { sidebarLinks } from "@/constants";
 import { INavLink } from "@/types";
 import { Button } from "@/components/ui/button";
+import NotificationBell from "@/components/shared/NotificationBell";
 
 const LeftSidebar = () => {
     const { pathname } = useLocation();
@@ -69,14 +70,20 @@ useEffect(() => {
           })}
         </ul>
       </div>
-      <Button
-        variant={"ghost"}
-        className="shad-button_ghost"
-        onClick={() => signOut()}
-      >
-        <img src="/assets/icons/logout.svg" alt="logout" />
-        <p className="small-medium lg:base-medium">Logout</p>
-      </Button>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3 px-2">
+          <NotificationBell />
+          <span className="small-medium text-light-3">Notifications</span>
+        </div>
+        <Button
+          variant={"ghost"}
+          className="shad-button_ghost"
+          onClick={() => signOut()}
+        >
+          <img src="/assets/icons/logout.svg" alt="logout" />
+          <p className="small-medium lg:base-medium">Logout</p>
+        </Button>
+      </div>
     </nav>
   );
 }

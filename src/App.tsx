@@ -13,9 +13,11 @@ import {
   Explore,
   Home,
   Messages,
+  Notifications,
   PostDetails,
   Profile,
   Saved,
+  Search,
   TagFeed,
   UpdateProfile,
   UserRedirect,
@@ -48,6 +50,8 @@ const App = () => {
           <Route path="/messages/:conversationId" element={<Messages />} />
           <Route path="/messages/new/:newUserId" element={<Messages />} />
           <Route path="/admin/reports" element={<AdminReports />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/search" element={<Search />} />
         </Route>
       </Routes>
 

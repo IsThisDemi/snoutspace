@@ -35,4 +35,8 @@ export enum QUERY_KEYS {
 
   // REPORTS
   GET_REPORTS = "getReports",
+
+  // NOTIFICATIONS
+  GET_NOTIFICATIONS = "getNotifications",
+  GET_UNREAD_COUNT = "getUnreadCount",
 }

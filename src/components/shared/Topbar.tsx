@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useSignOutAccount } from "@/lib/react-query/queries";
 import { useEffect } from "react";
 import { useUserContext } from "@/context/AuthContext";
+import NotificationBell from "@/components/shared/NotificationBell";
 
 const Topbar = () => {
   const { mutate: signOut, isSuccess } = useSignOutAccount();
@@ -24,7 +25,8 @@ useEffect(() => {
           <h2 className="h3-bold md:h2-bold gradient-text">SnoutSpace</h2>
         </Link>
 
-        <div className="flex gap-4">
+        <div className="flex items-center gap-3">
+          <NotificationBell />
           <Button
             variant={"ghost"}
             className="shad-button_ghost"
