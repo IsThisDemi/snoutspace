@@ -16,13 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "../ui/textarea";
 import FileUploader from "../shared/FileUploader";
 import { PostValidation } from "@/lib/validation";
-import { Models } from "appwrite";
+import { IDocument } from "@/types";
 import { useCreatePost, useUpdatePost } from "@/lib/react-query/queries";
 import { useUserContext } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 
 type PostFormProps = {
-  post?: Models.Document;
+  post?: IDocument;
   action: "Create" | "Update";
 };
 
@@ -35,7 +35,6 @@ const PostForm = ({ post, action }: PostFormProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // 1. Define your form.
   const form = useForm<z.infer<typeof PostValidation>>({
     resolver: zodResolver(PostValidation),
     defaultValues: {
@@ -46,12 +45,11 @@ const PostForm = ({ post, action }: PostFormProps) => {
     },
   });
 
-  // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof PostValidation>) {
     if (post && action === "Update") {
       const updatedPost = await updatePost({
         ...values,
-        postId: post.$id,
+        postId: post.id,
         imageId: post?.imageId,
         imageUrl: post?.imageUrl,
       });
@@ -62,9 +60,9 @@ const PostForm = ({ post, action }: PostFormProps) => {
         });
       }
 
-      return navigate(`/posts/${post.$id}`);
+      return navigate(`/posts/${post.id}`);
     }
-     
+
     const newPost = await createPost({
       ...values,
       userId: user.id,

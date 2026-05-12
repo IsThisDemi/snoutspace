@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { IContextType, IUser } from "@/types";
-import { getCurrentUser } from "@/lib/appwrite/api";
-import { useNavigate } from "react-router-dom";
+import { getCurrentUser } from "@/lib/api/api";
+import { useNavigate, useLocation } from "react-router-dom";
+
+const AUTH_ROUTES = ["/sign-in", "/sign-up"];
 
 export const INITIAL_USER = {
   id: "",
@@ -29,6 +31,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const checkAuthUser = async () => {
     try {
@@ -36,7 +39,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (currentAccount) {
         setUser({
-          id: currentAccount.$id,
+          id: currentAccount.id,
           name: currentAccount.name,
           username: currentAccount.username,
           email: currentAccount.email,
@@ -58,13 +61,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    if (
-      localStorage.getItem("cookieFallback") === "[]" ||
-      localStorage.getItem("cookieFallback") === null
-    )
-      navigate("/sign-in");
-
-    checkAuthUser();
+    if (AUTH_ROUTES.includes(location.pathname)) return;
+    checkAuthUser().then((isAuth) => {
+      if (!isAuth) navigate("/sign-in");
+    });
   }, []);
 
   const value = {

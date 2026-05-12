@@ -1,3 +1,8 @@
+export type IDocument = {
+  id: string;
+  [key: string]: any;
+};
+
 export type IContextType = {
   user: IUser;
   isLoading: boolean;

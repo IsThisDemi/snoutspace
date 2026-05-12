@@ -2,7 +2,7 @@ import Loader from "@/components/shared/Loader";
 import PostCard from "@/components/shared/PostCard";
 import UserCard from "@/components/shared/UserCard";
 import { useGetRecentPosts, useGetUsers } from "@/lib/react-query/queries";
-import { Models } from "appwrite";
+import { IDocument } from "@/types";
 
 const Home = () => {
   const { data: posts, isPending: isPostLoading, isError: isErrorPosts } = useGetRecentPosts();
@@ -40,8 +40,8 @@ const Home = () => {
             <Loader />
           ) : (
             <ul className="flex flex-col flex-1 gap-9 w-full">
-              {posts?.documents.map((post: Models.Document) => (
-                <PostCard post={post} key={post.caption} />
+              {posts?.documents.map((post: IDocument) => (
+                <PostCard post={post} key={post.id} />
               ))}
             </ul>
           )}
@@ -54,8 +54,8 @@ const Home = () => {
           <Loader />
         ) : (
           <ul className="grid 2xl:grid-cols-2 gap-6">
-            {creators?.documents.map((creator) => (
-              <li key={creator?.$id}>
+            {creators?.documents.map((creator: IDocument) => (
+              <li key={creator?.id}>
                 <UserCard user={creator} />
               </li>
             ))}

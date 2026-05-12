@@ -25,7 +25,7 @@ import {
   signOutAccount,
   updatePost,
   updateUser,
-} from "../appwrite/api";
+} from "../api/api";
 
 // ============================================================
 // AUTH QUERIES
@@ -64,8 +64,7 @@ export const useGetPosts = () => {
         return null;
       }
 
-      // Use the $id of the last document as the cursor.
-      const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
+      const lastId = lastPage.documents[lastPage.documents.length - 1].id;
       return lastId;
     },
     initialPageParam: null, // Start from the first page.
@@ -128,7 +127,7 @@ export const useLikePost = () => {
     }) => likePost(postId, likesArray),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id],
+        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.id],
       });
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
@@ -186,7 +185,7 @@ export const useUpdatePost = () => {
     mutationFn: (post: IUpdatePost) => updatePost(post),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id],
+        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.id],
       });
     },
   });
@@ -239,7 +238,7 @@ export const useUpdateUser = () => {
         queryKey: [QUERY_KEYS.GET_CURRENT_USER],
       });
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_USER_BY_ID, data?.$id],
+        queryKey: [QUERY_KEYS.GET_USER_BY_ID, data?.id],
       });
     },
   });
