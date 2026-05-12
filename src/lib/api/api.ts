@@ -252,6 +252,63 @@ export async function unfollowUser(userId: string) {
   return apiFetch(`/users/${userId}/follow`, { method: "DELETE" });
 }
 
+// ============================================================
+// STORIES
+// ============================================================
+
+export async function getStories() {
+  return apiFetch("/stories");
+}
+
+export async function createStory(file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  return apiFetchForm("/stories", form);
+}
+
+export async function viewStory(storyId: string) {
+  return apiFetch(`/stories/${storyId}/view`, { method: "POST" });
+}
+
+export async function deleteStory(storyId: string) {
+  return apiFetch(`/stories/${storyId}`, { method: "DELETE" });
+}
+
+// ============================================================
+// MESSAGES
+// ============================================================
+
+export async function getConversations() {
+  return apiFetch("/messages");
+}
+
+export async function getMessages(conversationId: string) {
+  return apiFetch(`/messages/${conversationId}`);
+}
+
+export async function sendMessageRest(recipientId: string, body: string) {
+  return apiFetch(`/messages/with/${recipientId}`, {
+    method: "POST",
+    body: JSON.stringify({ body }),
+  });
+}
+
+// ============================================================
+// REPORTS
+// ============================================================
+
+export async function createReport(targetType: string, targetId: string, reason: string) {
+  return apiFetch("/reports", { method: "POST", body: JSON.stringify({ targetType, targetId, reason }) });
+}
+
+export async function getReports() {
+  return apiFetch("/reports");
+}
+
+export async function updateReportStatus(reportId: string, status: string) {
+  return apiFetch(`/reports/${reportId}/status`, { method: "PATCH", body: JSON.stringify({ status }) });
+}
+
 export async function updateUser(user: IUpdateUser) {
   try {
     const form = new FormData();

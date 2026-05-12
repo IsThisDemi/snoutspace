@@ -25,4 +25,14 @@ export enum QUERY_KEYS {
 
   // USERNAME LOOKUP
   GET_USER_BY_USERNAME = "getUserByUsername",
+
+  // STORIES
+  GET_STORIES = "getStories",
+
+  // MESSAGES
+  GET_CONVERSATIONS = "getConversations",
+  GET_MESSAGES = "getMessages",
+
+  // REPORTS
+  GET_REPORTS = "getReports",
 }

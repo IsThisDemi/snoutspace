@@ -9,6 +9,15 @@ import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
 import {
   createComment,
   createPost,
+  createReport,
+  createStory,
+  deleteStory,
+  getConversations,
+  getMessages,
+  getReports,
+  getStories,
+  updateReportStatus,
+  viewStory,
   createUserAccount,
   deleteComment,
   deletePost,
@@ -304,6 +313,78 @@ export const useUnfollowUser = (targetUserId: string) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USER_BY_ID, targetUserId] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USERS] });
     },
+  });
+};
+
+// ============================================================
+// STORY QUERIES
+// ============================================================
+
+export const useGetStories = () => {
+  return useQuery({ queryKey: [QUERY_KEYS.GET_STORIES], queryFn: getStories });
+};
+
+export const useCreateStory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => createStory(file),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_STORIES] }),
+  });
+};
+
+export const useViewStory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (storyId: string) => viewStory(storyId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_STORIES] }),
+  });
+};
+
+export const useDeleteStory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (storyId: string) => deleteStory(storyId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_STORIES] }),
+  });
+};
+
+// ============================================================
+// MESSAGE QUERIES
+// ============================================================
+
+export const useGetConversations = () => {
+  return useQuery({ queryKey: [QUERY_KEYS.GET_CONVERSATIONS], queryFn: getConversations });
+};
+
+export const useGetMessages = (conversationId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_MESSAGES, conversationId],
+    queryFn: () => getMessages(conversationId),
+    enabled: !!conversationId,
+    refetchInterval: false,
+  });
+};
+
+// ============================================================
+// REPORT QUERIES
+// ============================================================
+
+export const useCreateReport = () => {
+  return useMutation({
+    mutationFn: ({ targetType, targetId, reason }: { targetType: string; targetId: string; reason: string }) =>
+      createReport(targetType, targetId, reason),
+  });
+};
+
+export const useGetReports = () => {
+  return useQuery({ queryKey: [QUERY_KEYS.GET_REPORTS], queryFn: getReports });
+};
+
+export const useUpdateReportStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ reportId, status }: { reportId: string; status: string }) => updateReportStatus(reportId, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_REPORTS] }),
   });
 };
 

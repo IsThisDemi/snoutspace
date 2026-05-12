@@ -1,6 +1,7 @@
 import Loader from "@/components/shared/Loader";
 import PostCard from "@/components/shared/PostCard";
 import UserCard from "@/components/shared/UserCard";
+import StoriesBar from "@/components/shared/StoriesBar";
 import { useGetRecentPosts, useGetUsers } from "@/lib/react-query/queries";
 import { IDocument } from "@/types";
 
@@ -36,6 +37,7 @@ const Home = () => {
             />
             <h2 className="h3-bold md:h2-bold text-left w-full">Home Feed</h2>
           </div>
+          <StoriesBar />
           {isPostLoading && !posts ? (
             <Loader />
           ) : (

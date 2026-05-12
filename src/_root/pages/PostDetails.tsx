@@ -5,7 +5,9 @@ import { Loader } from "@/components/shared";
 import { GridPostList, PostStats } from "@/components/shared";
 import CommentSection from "@/components/shared/CommentSection";
 import MentionText from "@/components/shared/MentionText";
+import ReportModal from "@/components/shared/ReportModal";
 
+import { useState } from "react";
 import {
   useGetPostById,
   useGetUserPosts,
@@ -25,6 +27,7 @@ const PostDetails = () => {
     post?.creator?.id
   );
   const { mutate: deletePost } = useDeletePost();
+  const [showReport, setShowReport] = useState(false);
 
   const relatedPosts = userPosts?.documents.filter(
     (userPost: IDocument) => userPost.id !== id
@@ -120,6 +123,17 @@ const PostDetails = () => {
                     height={24}
                   />
                 </Button>
+
+                {user.id !== post?.creator?.id && (
+                  <Button
+                    onClick={() => setShowReport(true)}
+                    variant="ghost"
+                    className="shad-button_ghost"
+                    title="Report post"
+                  >
+                    <img src="/assets/icons/filter.svg" alt="report" width={20} height={20} className="opacity-50" />
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -181,6 +195,14 @@ const PostDetails = () => {
           <GridPostList posts={relatedPosts} />
         )}
       </div>
+
+      {showReport && post && (
+        <ReportModal
+          targetType="post"
+          targetId={post.id}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </div>
   );
 };
