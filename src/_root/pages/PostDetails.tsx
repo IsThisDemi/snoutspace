@@ -4,6 +4,7 @@ import { Button } from "@/components/ui";
 import { Loader } from "@/components/shared";
 import { GridPostList, PostStats } from "@/components/shared";
 import CommentSection from "@/components/shared/CommentSection";
+import MentionText from "@/components/shared/MentionText";
 
 import {
   useGetPostById,
@@ -125,7 +126,7 @@ const PostDetails = () => {
             <hr className="border w-full border-dark-4/80" />
 
             <div className="flex flex-col flex-1 w-full small-medium lg:base-regular">
-              <p>{post?.caption}</p>
+              <MentionText text={post?.caption ?? ""} />
               <ul className="flex flex-wrap gap-1 mt-2">
                 {post?.tags.map((tag: string, index: number) => (
                   <li key={`${tag}${index}`}>
@@ -143,6 +144,23 @@ const PostDetails = () => {
             <div className="w-full">
               <PostStats post={post} userId={user.id} />
             </div>
+
+            {user.id === post?.creator?.id && (
+              <div className="flex gap-6 w-full px-3 py-2 rounded-lg bg-dark-4/40 text-light-3 tiny-medium">
+                <span className="flex items-center gap-1.5">
+                  <img src="/assets/icons/like.svg" alt="likes" width={14} height={14} />
+                  {post.likes?.length ?? 0} likes
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <img src="/assets/icons/chat.svg" alt="comments" width={14} height={14} />
+                  {post.commentCount ?? 0} comments
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <img src="/assets/icons/save.svg" alt="saves" width={14} height={14} />
+                  {post.saveCount ?? 0} saves
+                </span>
+              </div>
+            )}
 
             <hr className="border w-full border-dark-4/80" />
 

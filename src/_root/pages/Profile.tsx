@@ -44,6 +44,7 @@ const Profile = () => {
 
   const isOwnProfile = user.id === id;
   const isFollowed = currentUser.isFollowedByCurrentUser;
+  const isPrivateBlocked = currentUser.isPrivate && !isFollowed && !isOwnProfile;
 
   const handleFollowToggle = () => {
     if (isFollowed) {
@@ -66,9 +67,14 @@ const Profile = () => {
           />
           <div className="flex flex-col flex-1 justify-between md:mt-2">
             <div className="flex flex-col w-full">
-              <h1 className="text-center xl:text-left h3-bold md:h1-semibold w-full">
-                {currentUser.name}
-              </h1>
+              <div className="flex items-center gap-2 justify-center xl:justify-start">
+                <h1 className="text-center xl:text-left h3-bold md:h1-semibold">
+                  {currentUser.name}
+                </h1>
+                {currentUser.isPrivate && (
+                  <img src="/assets/icons/lock.svg" alt="private" width={18} height={18} className="opacity-60" />
+                )}
+              </div>
               <p className="small-regular md:body-medium text-light-3 text-center xl:text-left">
                 @{currentUser.username}
               </p>
@@ -154,15 +160,23 @@ const Profile = () => {
         </div>
       )}
 
-      <Routes>
-        <Route
-          index
-          element={<GridPostList posts={currentUser.posts ?? []} showUser={false} />}
-        />
-        {currentUser.id === user.id && (
-          <Route path="/liked-posts" element={<LikedPosts />} />
-        )}
-      </Routes>
+      {isPrivateBlocked ? (
+        <div className="flex flex-col items-center gap-4 mt-10 text-light-3">
+          <img src="/assets/icons/lock.svg" alt="private" width={48} height={48} className="opacity-30" />
+          <p className="body-bold text-light-2">This account is private</p>
+          <p className="small-regular">Follow to see their posts.</p>
+        </div>
+      ) : (
+        <Routes>
+          <Route
+            index
+            element={<GridPostList posts={currentUser.posts ?? []} showUser={false} />}
+          />
+          {currentUser.id === user.id && (
+            <Route path="/liked-posts" element={<LikedPosts />} />
+          )}
+        </Routes>
+      )}
       <Outlet />
     </div>
   );

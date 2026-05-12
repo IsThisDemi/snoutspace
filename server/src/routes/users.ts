@@ -19,6 +19,7 @@ function serializeUser(user: any) {
     _id: undefined,
     passwordHash: undefined,
     __v: undefined,
+    isPrivate: u.isPrivate ?? false,
   };
 }
 
@@ -83,6 +84,25 @@ router.get("/", requireAuth, async (req: AuthRequest, res: Response): Promise<vo
   res.json({ documents: docs, total: docs.length });
 });
 
+router.get("/u/:username", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const user = await User.findOne({ username: req.params.username });
+  if (!user) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+  const [followerCount, followingCount, existingFollow] = await Promise.all([
+    Follow.countDocuments({ following: user._id }),
+    Follow.countDocuments({ follower: user._id }),
+    Follow.findOne({ follower: req.userId, following: user._id }),
+  ]);
+  res.json({
+    ...serializeUser(user),
+    followerCount,
+    followingCount,
+    isFollowedByCurrentUser: !!existingFollow,
+  });
+});
+
 router.get("/:id", requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const user = await User.findById(req.params.id);
   if (!user) {
@@ -90,15 +110,34 @@ router.get("/:id", requireAuth, async (req: AuthRequest, res: Response): Promise
     return;
   }
 
-  const [saves, posts, followerCount, followingCount, existingFollow] = await Promise.all([
+  const [followerCount, followingCount, existingFollow] = await Promise.all([
+    Follow.countDocuments({ following: user._id }),
+    Follow.countDocuments({ follower: user._id }),
+    Follow.findOne({ follower: req.userId, following: user._id }),
+  ]);
+
+  const isFollowing = !!existingFollow;
+  const isOwnProfile = req.userId === user._id.toString();
+
+  if (user.isPrivate && !isFollowing && !isOwnProfile) {
+    res.json({
+      ...serializeUser(user),
+      followerCount,
+      followingCount,
+      isFollowedByCurrentUser: false,
+      isPrivateBlocked: true,
+      save: [],
+      posts: [],
+    });
+    return;
+  }
+
+  const [saves, posts] = await Promise.all([
     Save.find({ user: user._id }).populate({
       path: "post",
       populate: { path: "creator", select: "-passwordHash" },
     }),
     Post.find({ creator: user._id }).sort({ createdAt: -1 }).populate("creator", "-passwordHash"),
-    Follow.countDocuments({ following: user._id }),
-    Follow.countDocuments({ follower: user._id }),
-    Follow.findOne({ follower: req.userId, following: user._id }),
   ]);
 
   const serializedSaves = saves.map((s: any) => ({
@@ -113,7 +152,7 @@ router.get("/:id", requireAuth, async (req: AuthRequest, res: Response): Promise
     posts: posts.map(serializePost),
     followerCount,
     followingCount,
-    isFollowedByCurrentUser: !!existingFollow,
+    isFollowedByCurrentUser: isFollowing,
   });
 });
 
@@ -165,7 +204,7 @@ router.put("/:id", requireAuth, upload.single("file"), async (req: AuthRequest, 
     return;
   }
 
-  const { name, bio } = req.body;
+  const { name, bio, isPrivate } = req.body;
 
   if (req.file) {
     const oldImageId = user.imageId;
@@ -180,6 +219,7 @@ router.put("/:id", requireAuth, upload.single("file"), async (req: AuthRequest, 
 
   if (name !== undefined) user.name = name;
   if (bio !== undefined) user.bio = bio;
+  if (isPrivate !== undefined) user.isPrivate = isPrivate === "true" || isPrivate === true;
   await user.save();
 
   res.json(serializeUser(user));

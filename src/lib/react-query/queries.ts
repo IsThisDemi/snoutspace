@@ -22,6 +22,7 @@ import {
   getRecentPosts,
   getTrendingPosts,
   getUserById,
+  getUserByUsername,
   getUserPosts,
   getUsers,
   likePost,
@@ -303,6 +304,15 @@ export const useUnfollowUser = (targetUserId: string) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USER_BY_ID, targetUserId] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USERS] });
     },
+  });
+};
+
+export const useGetUserByUsername = (username: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_USER_BY_USERNAME, username],
+    queryFn: () => getUserByUsername(username),
+    enabled: !!username,
+    retry: false,
   });
 };
 

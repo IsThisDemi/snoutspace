@@ -240,6 +240,10 @@ export async function getUserById(userId: string) {
   return apiFetch(`/users/${userId}`);
 }
 
+export async function getUserByUsername(username: string) {
+  return apiFetch(`/users/u/${encodeURIComponent(username)}`);
+}
+
 export async function followUser(userId: string) {
   return apiFetch(`/users/${userId}/follow`, { method: "POST" });
 }
@@ -253,6 +257,7 @@ export async function updateUser(user: IUpdateUser) {
     const form = new FormData();
     form.append("name", user.name);
     form.append("bio", user.bio);
+    form.append("isPrivate", String(user.isPrivate ?? false));
     if (user.file.length > 0) form.append("file", user.file[0]);
 
     return await apiFetchForm(`/users/${user.userId}`, form, "PUT");

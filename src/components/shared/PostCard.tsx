@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { multiFormatDateString } from "@/lib/utils";
 import { useUserContext } from "@/context/AuthContext";
 import PostStats from "./PostStats";
+import MentionText from "./MentionText";
 import { IDocument } from "@/types";
 
 type PostCardProps = {
@@ -60,7 +61,7 @@ const PostCard = ({ post }: PostCardProps) => {
 
       <Link to={`/posts/${post.id}`}>
         <div className="small-medium lg:base-medium py-5">
-          <p>{post.caption}</p>
+          <MentionText text={post.caption} />
           <ul className="flex flex-wrap gap-1 mt-2">
             {post.tags.map((tag: string, index: number) => (
               <li key={`${tag}${index}`}>

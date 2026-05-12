@@ -29,6 +29,7 @@ export const ProfileValidation = z.object({
     .min(6, { message: "Name must be at least 6 characters." }),
   email: z.string().email(),
   bio: z.string(),
+  isPrivate: z.boolean().default(false),
 });
 
 export const PostValidation = z.object({

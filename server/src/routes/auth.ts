@@ -40,6 +40,7 @@ function serializeUser(user: InstanceType<typeof User>) {
     imageUrl: user.imageUrl,
     imageId: user.imageId,
     bio: user.bio,
+    isPrivate: user.isPrivate,
     createdAt: user.createdAt,
   };
 }

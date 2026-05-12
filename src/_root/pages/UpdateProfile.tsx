@@ -32,6 +32,7 @@ const UpdateProfile = () => {
       username: user.username,
       email: user.email,
       bio: user.bio || "",
+      isPrivate: false,
     },
   });
 
@@ -46,6 +47,11 @@ const UpdateProfile = () => {
       </div>
     );
 
+  // Sync isPrivate default once data loads
+  if (form.getValues("isPrivate") === false && currentUser.isPrivate) {
+    form.setValue("isPrivate", currentUser.isPrivate);
+  }
+
   const handleUpdate = async (value: z.infer<typeof ProfileValidation>) => {
     const updatedUser = await updateUser({
       userId: currentUser.id,
@@ -54,6 +60,7 @@ const UpdateProfile = () => {
       file: value.file,
       imageUrl: currentUser.imageUrl,
       imageId: currentUser.imageId,
+      isPrivate: value.isPrivate,
     });
 
     if (!updatedUser) {
@@ -171,6 +178,40 @@ const UpdateProfile = () => {
                     />
                   </FormControl>
                   <FormMessage className="shad-form_message" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isPrivate"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border border-[var(--color-glass-border)] bg-dark-4/40 px-5 py-4">
+                  <div>
+                    <FormLabel className="shad-form_label text-base">
+                      Private Account
+                    </FormLabel>
+                    <p className="text-light-4 small-regular mt-0.5">
+                      Only followers can see your posts and profile
+                    </p>
+                  </div>
+                  <FormControl>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={field.value}
+                      onClick={() => field.onChange(!field.value)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                        field.value ? "bg-primary-600" : "bg-dark-5"
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                          field.value ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
+                  </FormControl>
                 </FormItem>
               )}
             />

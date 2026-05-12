@@ -8,6 +8,7 @@ export interface IUserDocument extends Document {
   imageUrl: string;
   imageId: string;
   bio: string;
+  isPrivate: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,6 +22,7 @@ const userSchema = new Schema<IUserDocument>(
     imageUrl: { type: String, default: "" },
     imageId: { type: String, default: "" },
     bio: { type: String, default: "" },
+    isPrivate: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

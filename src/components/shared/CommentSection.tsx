@@ -4,6 +4,7 @@ import { useGetPostComments, useCreateComment, useDeleteComment } from "@/lib/re
 import { useUserContext } from "@/context/AuthContext";
 import { multiFormatDateString } from "@/lib/utils";
 import Loader from "./Loader";
+import MentionText from "./MentionText";
 
 type CommentSectionProps = {
   postId: string;
@@ -81,7 +82,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                     {multiFormatDateString(comment.createdAt)}
                   </span>
                 </div>
-                <p className="small-regular text-light-2">{comment.body}</p>
+                <MentionText text={comment.body} className="small-regular text-light-2" />
               </div>
               {comment.author?.id === user.id && (
                 <button

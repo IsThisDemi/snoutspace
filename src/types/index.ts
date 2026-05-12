@@ -25,6 +25,7 @@ export type IUpdateUser = {
   imageId: string;
   imageUrl: URL | string;
   file: File[];
+  isPrivate?: boolean;
 };
 
 export type INewPost = {

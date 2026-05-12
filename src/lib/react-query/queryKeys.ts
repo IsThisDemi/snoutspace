@@ -22,4 +22,7 @@ export enum QUERY_KEYS {
 
   // COMMENT KEYS
   GET_POST_COMMENTS = "getPostComments",
+
+  // USERNAME LOOKUP
+  GET_USER_BY_USERNAME = "getUserByUsername",
 }

@@ -114,7 +114,11 @@ router.get("/:id", requireAuth, async (req: AuthRequest, res: Response): Promise
     res.status(404).json({ message: "Post not found" });
     return;
   }
-  res.json(serializePost(post));
+  const [commentCount, saveCount] = await Promise.all([
+    Comment.countDocuments({ post: post._id }),
+    Save.countDocuments({ post: post._id }),
+  ]);
+  res.json({ ...serializePost(post), commentCount, saveCount });
 });
 
 router.post("/", requireAuth, upload.single("file"), async (req: AuthRequest, res: Response): Promise<void> => {
